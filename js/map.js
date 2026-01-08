@@ -87,7 +87,8 @@ export function setMapView(mode, refreshCallback) {
     mapViewMode = mode;
     mapZoom = 1;
     mapPan = { x: 0, y: 0 };
-    if (window.cachedAllNews && refreshCallback) {
+    // Always call refresh callback to re-render the map with new projection
+    if (refreshCallback) {
         refreshCallback();
     }
 }
