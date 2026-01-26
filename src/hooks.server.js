@@ -1,34 +1,39 @@
+/** @type {import('@sveltejs/kit').Handle} */
 export async function handle({ event, resolve }) {
-    const url = event.url;
-    const token = url.searchParams.get('token');
-    const secretToken = 'ZP9SDHxWEzx87uK7T0A'; // Change this!
+    const VALID_TOKEN = "ZP9SDHxWEzx87uK7T0A"; // Must match your Flask/Frontend token
+    const token = event.url.searchParams.get('token');
+    const session = event.cookies.get('gateway_session');
 
-    // 1. Allow Vercel internal processes
+    // 1. Allow Vercel's internal build processes
     if (process.env.VERCEL === '1' || event.request.headers.get('x-prerender')) {
         return resolve(event);
     }
 
-    // 2. Logic: Only allow if the token matches
-    // Once matched, we set a session cookie so the user can navigate 
-    // without needing the token on every single click.
-    const hasSession = event.cookies.get('gateway_auth') === 'true';
-
-    if (token === secretToken || hasSession) {
+    // 2. Check for Authorization
+    // If they have the token in the URL, they are coming from your Domain
+    if (token === VALID_TOKEN) {
         const response = await resolve(event);
         
-        // Set the cookie if they just arrived with the token
-        if (token === secretToken) {
-            response.headers.append('Set-Cookie', event.cookies.serialize('gateway_auth', 'true', {
-                path: '/',
-                httpOnly: true,
-                sameSite: 'none', // Critical for iframes
-                secure: true,
-                maxAge: 60 * 60 * 24 // 24 hours
-            }));
-        }
+        // Set a cookie so they stay logged in as they click around the dashboard
+        response.headers.append('Set-Cookie', event.cookies.serialize('gateway_session', 'authorized', {
+            path: '/',
+            httpOnly: true,
+            sameSite: 'none', // Critical for iframes
+            secure: true,
+            maxAge: 60 * 60 * 24 // 1 day
+        }));
+        
         return response;
     }
 
-    // 3. If no token and no session: Ghost mode (403 Forbidden)
-    return new Response('403 Forbidden', { status: 403 });
+    // 3. If they already have the cookie, let them in
+    if (session === 'authorized') {
+        return resolve(event);
+    }
+
+    // 4. BLOCK EVERYTHING ELSE
+    // If they go to the Vercel URL directly without a token, they get this:
+    return new Response('BLOCKED BY GATEWAY: Unauthorized direct access.', { 
+        status: 403 
+    });
 }
