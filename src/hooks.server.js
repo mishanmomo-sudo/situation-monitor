@@ -1,39 +1,33 @@
-/** @type {import('@sveltejs/kit').Handle} */
 export async function handle({ event, resolve }) {
-    const VALID_TOKEN = "ZP9SDHxWEzx87uK7T0A"; // Must match your Flask/Frontend token
+    // 1. Get the current environment and headers
+    const isVercel = process.env.VERCEL === '1';
+    const isPrerender = event.request.headers.get('x-prerender');
+    
+    // 2. IMPORTANT: Allow all internal build/prerender traffic
+    // This fixes the "Error: 500 /" and "npm run build" failure
+    if (isVercel || isPrerender) {
+        return resolve(event);
+    }
+
+    // 3. Your Security Logic for real users
+    const VALID_TOKEN = "ZP9SDHxWEzx87uK7T0A"; 
     const token = event.url.searchParams.get('token');
     const session = event.cookies.get('gateway_session');
 
-    // 1. Allow Vercel's internal build processes
-    if (process.env.VERCEL === '1' || event.request.headers.get('x-prerender')) {
-        return resolve(event);
-    }
-
-    // 2. Check for Authorization
-    // If they have the token in the URL, they are coming from your Domain
-    if (token === VALID_TOKEN) {
+    if (token === VALID_TOKEN || session === 'authorized') {
         const response = await resolve(event);
-        
-        // Set a cookie so they stay logged in as they click around the dashboard
-        response.headers.append('Set-Cookie', event.cookies.serialize('gateway_session', 'authorized', {
-            path: '/',
-            httpOnly: true,
-            sameSite: 'none', // Critical for iframes
-            secure: true,
-            maxAge: 60 * 60 * 24 // 1 day
-        }));
-        
+        if (token === VALID_TOKEN) {
+            response.headers.append('Set-Cookie', event.cookies.serialize('gateway_session', 'authorized', {
+                path: '/',
+                httpOnly: true,
+                sameSite: 'none', 
+                secure: true,
+                maxAge: 60 * 60 * 24
+            }));
+        }
         return response;
     }
 
-    // 3. If they already have the cookie, let them in
-    if (session === 'authorized') {
-        return resolve(event);
-    }
-
-    // 4. BLOCK EVERYTHING ELSE
-    // If they go to the Vercel URL directly without a token, they get this:
-    return new Response('BLOCKED BY GATEWAY: Unauthorized direct access.', { 
-        status: 403 
-    });
+    // 4. Block direct public access
+    return new Response('BLOCKED BY GATEWAY', { status: 403 });
 }
