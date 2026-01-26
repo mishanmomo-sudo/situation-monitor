@@ -1,21 +1,20 @@
 export async function handle({ event, resolve }) {
-    const host = event.url.host;
-    const allowedDomain = 'https://monitor.mishan3.xyz/'; // Replace with your actual domain
-
-    // 1. Allow Vercel's internal build/prerender processes
-    const isPrerender = event.request.headers.get('x-prerender') || process.env.VERCEL === '1';
-    
-    if (isPrerender) {
+    // 1. Allow internal Vercel processes (Build/Prerender)
+    const isInternal = event.request.headers.get('x-prerender') || process.env.VERCEL === '1';
+    if (isInternal) {
         return resolve(event);
     }
 
-    // 2. Domain Validation: Block if the host isn't your GoDaddy domain
-    if (host !== allowedDomain) {
-        return new Response('BLOCKED BY GATEWAY: Please use the official domain.', { 
+    // 2. Check for your specific token in the URL parameters
+    const token = event.url.searchParams.get('token');
+    const VALID_TOKEN = 'xxxxx'; // Replace with your actual token value
+
+    if (token !== VALID_TOKEN) {
+        return new Response('BLOCKED BY GATEWAY: Unauthorized Access.', { 
             status: 403 
         });
     }
 
-    // 3. If everything is fine, proceed to the app
+    // 3. If token is valid, let them in
     return resolve(event);
 }
