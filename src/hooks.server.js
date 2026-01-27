@@ -1,21 +1,19 @@
 export async function handle({ event, resolve }) {
-    // 1. Get the current environment and headers
-    const isVercel = process.env.VERCEL === '1';
-    const isPrerender = event.request.headers.get('x-prerender');
-    
-    // 2. IMPORTANT: Allow all internal build/prerender traffic
-    // This fixes the "Error: 500 /" and "npm run build" failure
-    if (isVercel || isPrerender) {
+    // 1. ONLY allow internal build/prerender tools
+    const isPrerendering = event.request.headers.get('x-prerender');
+    if (isPrerendering) {
         return resolve(event);
     }
 
-    // 3. Your Security Logic for real users
+    // 2. Security Check
     const VALID_TOKEN = "ZP9SDHxWEzx87uK7T0A"; 
     const token = event.url.searchParams.get('token');
     const session = event.cookies.get('gateway_session');
 
+    // If they have the token OR the cookie, let them in
     if (token === VALID_TOKEN || session === 'authorized') {
         const response = await resolve(event);
+        
         if (token === VALID_TOKEN) {
             response.headers.append('Set-Cookie', event.cookies.serialize('gateway_session', 'authorized', {
                 path: '/',
@@ -28,6 +26,6 @@ export async function handle({ event, resolve }) {
         return response;
     }
 
-    // 4. Block direct public access
+    // 3. Reject everyone else
     return new Response('BLOCKED BY GATEWAY', { status: 403 });
 }
