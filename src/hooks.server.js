@@ -1,6 +1,5 @@
 export const config = { runtime: 'nodejs' };
-
-import { GATEWAY_TOKEN } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 
 export async function handle({ event, resolve }) {
     const token = event.url.searchParams.get('token');
@@ -11,7 +10,7 @@ export async function handle({ event, resolve }) {
 
     if (!isHtml) return resolve(event);
 
-    if (token === GATEWAY_TOKEN || session === 'authorized') {
+    if (token === env.GATEWAY_TOKEN || session === 'authorized') {
         const response = await resolve(event);
 
         response.headers.set(
@@ -19,7 +18,7 @@ export async function handle({ event, resolve }) {
             "frame-ancestors 'self' https://mishan3.xyz https://www.mishan3.xyz;"
         );
 
-        if (token === GATEWAY_TOKEN && session !== 'authorized') {
+        if (token === env.GATEWAY_TOKEN && session !== 'authorized') {
             event.cookies.set('gateway_session', 'authorized', {
                 path: '/',
                 httpOnly: true,
