@@ -2,7 +2,12 @@ export const config = { runtime: 'nodejs' };
 import { env } from '$env/dynamic/private';
 
 export async function handle({ event, resolve }) {
-    const token = event.url.searchParams.get('token');
+  const token = event.url.searchParams.get('token');
+  return new Response(
+    JSON.stringify({ token_received: token, env_token: process.env.GATEWAY_TOKEN, token_equal: token === process.env.GATEWAY_TOKEN }),
+    { status: 200, headers: { 'content-type': 'application/json' } }
+  );
+}
     const session = event.cookies.get('gateway_session');
 
     const accept = event.request.headers.get('accept') || '';
