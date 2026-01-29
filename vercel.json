@@ -11,8 +11,8 @@
           "value": "frame-ancestors 'self' https://mishan3.xyz https://www.mishan3.xyz;"
         },
         {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
+          "key": "X-Frame-Options",
+          "value": "ALLOW-FROM https://mishan3.xyz"
         }
       ]
     }
