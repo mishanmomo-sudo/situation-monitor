@@ -1,32 +1,25 @@
 export const config = { runtime: 'nodejs' };
-import { env } from '$env/dynamic/private';
+
+import { GATEWAY_TOKEN } from '$env/static/private';
 
 export async function handle({ event, resolve }) {
-  const token = event.url.searchParams.get('token');
-  return new Response(
-    JSON.stringify({ token_received: token, env_token: process.env.GATEWAY_TOKEN, token_equal: token === process.env.GATEWAY_TOKEN }),
-    { status: 200, headers: { 'content-type': 'application/json' } }
-  );
-}
+    const token = event.url.searchParams.get('token');
     const session = event.cookies.get('gateway_session');
 
     const accept = event.request.headers.get('accept') || '';
     const isHtml = accept.includes('text/html');
 
-    // Allow all non-HTML requests (JS, CSS, images, etc.)
     if (!isHtml) return resolve(event);
 
-    // Gate only the HTML page
-    if (token === env.GATEWAY_TOKEN || session === 'authorized') {
+    if (token === GATEWAY_TOKEN || session === 'authorized') {
         const response = await resolve(event);
 
-        // Iframe headers
         response.headers.set(
             'Content-Security-Policy',
             "frame-ancestors 'self' https://mishan3.xyz https://www.mishan3.xyz;"
         );
 
-        if (token === env.GATEWAY_TOKEN && session !== 'authorized') {
+        if (token === GATEWAY_TOKEN && session !== 'authorized') {
             event.cookies.set('gateway_session', 'authorized', {
                 path: '/',
                 httpOnly: true,
