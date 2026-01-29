@@ -1,3 +1,7 @@
+export const config = {
+  runtime: 'nodejs'
+};
+
 export async function handle({ event, resolve }) {
     const token = event.url.searchParams.get('token');
 
