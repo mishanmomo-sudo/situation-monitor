@@ -19,6 +19,7 @@ const config = {
 			precompress: false,
 			strict: true
 		}),
+		embedded: true,
 		paths: {
 			base: process.env.BASE_PATH || ''
 		},
