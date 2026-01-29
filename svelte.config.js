@@ -6,6 +6,11 @@ const config = {
 	preprocess: vitePreprocess(),
 
 	kit: {
+		// 🚩 FIX: Disable CSRF origin check to allow GoDaddy Iframe submissions
+		csrf: {
+			checkOrigin: false,
+		},
+		
 		// Static adapter for deployment to any static host
 		adapter: adapter({
 			pages: 'build',
