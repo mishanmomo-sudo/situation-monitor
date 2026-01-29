@@ -13,7 +13,7 @@ export async function handle({ event, resolve }) {
     
     // 🚩 BACKUP: Check if the request is coming FROM your GoDaddy domain
     const referer = event.request.headers.get('referer') || '';
-    const isFromDomain = referer.includes('yourgodaddydomain.com');
+    const isFromDomain = referer.includes('mishan3.xyz');
 
     // 3. Authorization Check (Allow if Token, Session, OR coming from the Domain Referer)
     if (token === VALID_TOKEN || session === 'authorized' || isFromDomain) {
