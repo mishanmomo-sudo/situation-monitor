@@ -5,12 +5,15 @@ export async function handle({ event, resolve }) {
     const token = event.url.searchParams.get('token');
     const session = event.cookies.get('gateway_session');
 
-    // 🚩 Allow ALL non-page requests (JS, CSS, images, etc.)
-    if (event.request.destination !== 'document') {
+    const accept = event.request.headers.get('accept') || '';
+    const isHtmlRequest = accept.includes('text/html');
+
+    // 🚩 Allow all non-HTML requests (JS, CSS, images, etc.)
+    if (!isHtmlRequest) {
         return resolve(event);
     }
 
-    // 🚩 Gate only the HTML document
+    // 🚩 Gate ONLY the HTML document
     if (token === GATEWAY_TOKEN || session === 'authorized') {
         const response = await resolve(event);
 
@@ -19,7 +22,6 @@ export async function handle({ event, resolve }) {
             "frame-ancestors 'self' https://mishan3.xyz https://www.mishan3.xyz;"
         );
 
-        // Set session cookie once
         if (token === GATEWAY_TOKEN && session !== 'authorized') {
             event.cookies.set('gateway_session', 'authorized', {
                 path: '/',
