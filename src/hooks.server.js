@@ -1,12 +1,35 @@
-export const config = {
-  runtime: 'nodejs'
-};
+export const config = { runtime: 'nodejs' };
+
+import { GATEWAY_TOKEN } from '$env/static/private';
 
 export async function handle({ event, resolve }) {
     const token = event.url.searchParams.get('token');
+    const session = event.cookies.get('gateway_session');
 
-    if (token === '34SIDJ68fSdas6d5ASD') {
-        return resolve(event);
+    const accept = event.request.headers.get('accept') || '';
+    const isHtml = accept.includes('text/html');
+
+    if (!isHtml) return resolve(event);
+
+    if (token === GATEWAY_TOKEN || session === 'authorized') {
+        const response = await resolve(event);
+
+        response.headers.set(
+            'Content-Security-Policy',
+            "frame-ancestors 'self' https://mishan3.xyz https://www.mishan3.xyz;"
+        );
+
+        if (token === GATEWAY_TOKEN && session !== 'authorized') {
+            event.cookies.set('gateway_session', 'authorized', {
+                path: '/',
+                httpOnly: true,
+                sameSite: 'none',
+                secure: true,
+                maxAge: 86400
+            });
+        }
+
+        return response;
     }
 
     return new Response('Access Denied', { status: 403 });
