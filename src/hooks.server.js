@@ -23,7 +23,7 @@ export async function handle({ event, resolve }) {
         // 🚩 FIX: Security Headers to allow GoDaddy Iframe "Mirroring"
         // This stops the "Refused to connect" error
         response.headers.set('X-Frame-Options', 'ALLOWALL');
-        response.headers.set('Content-Security-Policy', "frame-ancestors 'self' https://mishan3.xyz;");
+        response.headers.set('Content-Security-Policy', "frame-ancestors 'self' https://mishan3.xyz https://www.mishan3.xyz;");
 
         if (token === VALID_TOKEN) {
             response.headers.append('Set-Cookie', event.cookies.serialize('gateway_session', 'authorized', {
