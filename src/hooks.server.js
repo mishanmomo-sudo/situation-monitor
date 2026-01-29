@@ -16,15 +16,21 @@ export async function handle({ event, resolve }) {
     const session = event.cookies.get('gateway_session');
 
     // 3. Authorization Check
+    // If we have a token or a valid session, let them through
     if (token === VALID_TOKEN || session === 'authorized') {
         const response = await resolve(event);
         
+        // 🚩 FIX: Security Headers to allow GoDaddy Iframe "Mirroring"
+        // This stops the "Refused to connect" error
+        response.headers.set('X-Frame-Options', 'ALLOWALL');
+        response.headers.set('Content-Security-Policy', "frame-ancestors 'self' https://mishan3.xyz https://www.mishan3.xyz;");
+
         if (token === VALID_TOKEN) {
             response.headers.append('Set-Cookie', event.cookies.serialize('gateway_session', 'authorized', {
                 path: '/',
                 httpOnly: true,
-                sameSite: 'none', 
-                secure: true,
+                sameSite: 'none', // Required for iframes
+                secure: true,     // Required for sameSite: 'none'
                 maxAge: 60 * 60 * 24 
             }));
         }
@@ -32,5 +38,6 @@ export async function handle({ event, resolve }) {
     }
 
     // 4. Reject Direct Public Traffic
+    // 🚩 WITTY NOTE: If you reach here, SvelteKit thinks you are an intruder!
     return new Response('403 Forbidden: Access through domain only.', { status: 403 });
 }
