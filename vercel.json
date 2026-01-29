@@ -8,7 +8,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "frame-ancestors 'self' https://yourdomain.com https://www.yourdomain.com;"
+          "value": "frame-ancestors 'self' https://mishan3.xyz https://www.mishan3.xyz;"
         },
         {
           "key": "Access-Control-Allow-Origin",
