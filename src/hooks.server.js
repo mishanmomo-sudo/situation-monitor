@@ -1,8 +1,8 @@
-import { env } from '$env/dynamic/private';
+import { GATEWAY_TOKEN } from '$env/static/private';
 
 /** @type {import('@sveltejs/kit').Handle} */
 export async function handle({ event, resolve }) {
-    const VALID_TOKEN = env.GATEWAY_TOKEN;
+    const VALID_TOKEN = GATEWAY_TOKEN;
     const token = event.url.searchParams.get('token');
     const session = event.cookies.get('gateway_session');
 
