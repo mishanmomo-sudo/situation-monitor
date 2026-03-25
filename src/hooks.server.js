@@ -33,7 +33,7 @@ export async function handle({ event, resolve }) {
 
     // Ensure headers allow the iframe to load
     response.headers.set('X-Frame-Options', 'ALLOWALL'); 
-    response.headers.set('Content-Security-Policy', "frame-ancestors 'self' https://mishan8.xyz https://www.mishan8.xyz;");
+    response.headers.set('Content-Security-Policy', "frame-ancestors 'self' https://mishan3.xyz https://www.mishan3.xyz;");
 
     return response;
 }
